@@ -6,6 +6,7 @@ import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.constants.OTOSConstants;
 import com.pedropathing.paths.PathConstraints;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -14,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(5); //come back and change
+            .mass(10.34); //come back and change
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .rightFrontMotorName("front_right")
@@ -29,8 +30,9 @@ public class Constants {
     public static OTOSConstants localizerConstants = new OTOSConstants()
             .hardwareMapName("SparkFunOTOS")
             .linearUnit(DistanceUnit.INCH)
-            .linearScalar(1) //come back and change
-            .angularScalar(1) //come back and change
+            .linearScalar(0.9744)
+            .angularScalar(0.989) //come back and change
+            .offset(new SparkFunOTOS.Pose2D(.5,-5.125,Math.toRadians(90)))
             .angleUnit(AngleUnit.RADIANS);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
