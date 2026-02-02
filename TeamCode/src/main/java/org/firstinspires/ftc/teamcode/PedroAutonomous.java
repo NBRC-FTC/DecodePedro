@@ -1,6 +1,5 @@
 
-package org.firstinspires.ftc.teamcode.pedroPathing;
-import com.pedropathing.paths.Path;
+package org.firstinspires.ftc.teamcode;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -8,11 +7,17 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import com.pedropathing.geometry.BezierCurve;
+
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
+
+import org.firstinspires.ftc.teamcode.subsystems.IntakeWheel;
+import org.firstinspires.ftc.teamcode.subsystems.Launcher;
+import org.firstinspires.ftc.teamcode.subsystems.LauncherWheel;
+import org.firstinspires.ftc.teamcode.subsystems.OtosDrive;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 //
 
@@ -24,12 +29,23 @@ public class PedroAutonomous extends OpMode {
     private int pathState; // Current autonomous path state (state machine)
     private Paths paths; // Paths defined in the Paths class
     private Timer pathTimer, actionTimer, opmodeTimer;
+    private  LauncherWheel launcherWheel;
+    private  IntakeWheel intakeWheel;
+    private Launcher launcher;
+    private Shooter shooter;
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
-
+        pathTimer = new Timer();
+        opmodeTimer = new Timer();
+        opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(23, 125, Math.toRadians(145)));
+
+        launcherWheel = new LauncherWheel(hardwareMap, telemetry);
+        intakeWheel = new IntakeWheel(hardwareMap);
+        launcher = new Launcher(hardwareMap, telemetry);
+        shooter = new Shooter(hardwareMap, telemetry);
 
         paths = new Paths(follower); // Build paths
 
@@ -43,13 +59,14 @@ public class PedroAutonomous extends OpMode {
         autonomousPathUpdate(); // Update autonomous state machine
 
         // Log values to Panels and Driver Station
+        panelsTelemetry.debug("Total Time:", opmodeTimer.getElapsedTimeSeconds());
+        panelsTelemetry.debug("Path Time:", pathTimer.getElapsedTimeSeconds());
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("X", follower.getPose().getX());
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.update(telemetry);
     }
-    private Path Path1, Path2; //MJR TODO
 
     public static class Paths {
         public PathChain Path1;
@@ -63,7 +80,6 @@ public class PedroAutonomous extends OpMode {
                                     new Pose(34.000, 117.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(145))
-
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
@@ -82,10 +98,25 @@ public class PedroAutonomous extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(Path1, true);  //MJR ToDo
+                shooter.shootNear();
                 setPathState(1);
                 break;
             case 1:
+                follower.followPath(paths.Path1,.25, true);  //MJR ToDo
+                    setPathState(2);
+                break;
+            case 2:
+                if(!follower.isBusy()){
+                    intakeWheel.IntakeOn();
+                    launcherWheel.LauncherOn();
+                    if(pathTimer.getElapsedTimeSeconds() > 10){
+                        intakeWheel.IntakeOff();
+                        launcherWheel.LauncherOff();
+                        setPathState(3);
+                    }
+                }
+                break;
+            case 3:
             /* You could check for
             - Follower State: "if(!follower.isBusy()) {}"
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
@@ -95,9 +126,12 @@ public class PedroAutonomous extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(Path2,true);  //MJR ToDo
-                    setPathState(2);
+                    follower.followPath(paths.Path2,true);  //MJR ToDo
+                    setPathState(4);
                 }
+                break;
+            case 4:
+                shooter.shooterStop();
                 break;
         }
     }
