@@ -1,29 +1,28 @@
 
-package org.firstinspires.ftc.teamcode;
-import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.TelemetryManager;
-import com.bylazar.telemetry.PanelsTelemetry;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+package org.firstinspires.ftc.teamcode.pedroPathing;
 
-import com.pedropathing.geometry.BezierLine;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.paths.PathChain;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.subsystems.IntakeWheel;
 import org.firstinspires.ftc.teamcode.subsystems.Launcher;
 import org.firstinspires.ftc.teamcode.subsystems.LauncherWheel;
-import org.firstinspires.ftc.teamcode.subsystems.OtosDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 //
 
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Autonomous(name = "Pedro Autonomous 9 Balls", group = "Autonomous")
 @Configurable // Panels
-public class PedroAutonomous extends OpMode {
+public class PedroAutonomous9Ball extends OpMode {
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
@@ -68,70 +67,103 @@ public class PedroAutonomous extends OpMode {
         panelsTelemetry.update(telemetry);
     }
 
+
     public static class Paths {
-        public PathChain Path1;
-        public PathChain Path2;
+        public PathChain ScorePreload;
+        public PathChain Grab1;
+        public PathChain Score1;
+        public PathChain Grab2;
+        public PathChain Score2;
 
         public Paths(Follower follower) {
-            Path1 = follower.pathBuilder().addPath(
+            ScorePreload = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(23.000, 125.000),
 
                                     new Pose(34.000, 117.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(145))
+                    ).setConstantHeadingInterpolation(Math.toRadians(145))
+
                     .build();
 
-            Path2 = follower.pathBuilder().addPath(
-                            new BezierLine(
+            Grab1 = follower.pathBuilder().addPath(
+                            new BezierCurve(
                                     new Pose(34.000, 117.000),
-
-                                    new Pose(47.000, 127.000)
+                                    new Pose(94.000, 83.000),
+                                    new Pose(18.000, 84.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(145))
+                    ).setTangentHeadingInterpolation()
+                    .setReversed()
+                    .build();
+
+            Score1 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(18.000, 84.000),
+
+                                    new Pose(34.000, 117.000)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(-1), Math.toRadians(145))
+
+                    .build();
+
+            Grab2 = follower.pathBuilder().addPath(
+                            new BezierCurve(
+                                    new Pose(34.000, 117.000),
+                                    new Pose(108.000, 57.000),
+                                    new Pose(11.000, 58.000)
+                            )
+                    ).setTangentHeadingInterpolation()
+                    .setReversed()
+                    .build();
+
+            Score2 = follower.pathBuilder().addPath(
+                            new BezierCurve(
+                                    new Pose(11.000, 58.000),
+                                    new Pose(35.000, 51.000),
+                                    new Pose(34.000, 117.000)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(145))
 
                     .build();
         }
     }
 
 
+
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                shooter.shootNear();
+                follower.followPath(paths.ScorePreload,.5,true);
                 setPathState(1);
                 break;
             case 1:
-                follower.followPath(paths.Path1,.25, true);  //MJR ToDo
-                    setPathState(2);
-                break;
-            case 2:
-                if(!follower.isBusy()){
-                    intakeWheel.IntakeOn();
-                    launcherWheel.LauncherOn();
-                    if(pathTimer.getElapsedTimeSeconds() > 10){
-                        intakeWheel.IntakeOff();
-                        launcherWheel.LauncherOff();
-                        setPathState(3);
+                //Shoot
+                if (!follower.isBusy()) {
+                    if (pathTimer.getElapsedTimeSeconds() > 5) {
+                        follower.followPath(paths.Grab1,.5,true);
+                        setPathState(2);
                     }
                 }
                 break;
+            case 2:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Score1,.5,true);
+                    setPathState(3);
+                }
+                break;
             case 3:
-            /* You could check for
-            - Follower State: "if(!follower.isBusy()) {}"
-            - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
-            - Robot Position: "if(follower.getPose().getX() > 36) {}"
-            */
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
-                if(!follower.isBusy()) {
-                    /* Score Preload */
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(paths.Path2,true);  //MJR ToDo
-                    setPathState(4);
+                //Shoot
+                if (!follower.isBusy()) {
+                    if (pathTimer.getElapsedTimeSeconds() > 5) {
+                        follower.followPath(paths.Grab2,.5,true);
+                        setPathState(4);
+                    }
                 }
                 break;
             case 4:
-                shooter.shooterStop();
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Score2,.5,true);
+                }
                 break;
         }
     }
