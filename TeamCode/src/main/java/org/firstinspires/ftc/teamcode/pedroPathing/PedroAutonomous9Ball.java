@@ -90,7 +90,7 @@ public class PedroAutonomous9Ball extends OpMode {
                             new BezierCurve(
                                     new Pose(34.000, 117.000),
                                     new Pose(94.000, 83.000),
-                                    new Pose(18.000, 84.000)
+                                    new Pose(22, 84.000)
                             )
                     ).setTangentHeadingInterpolation()
                     .setReversed()
