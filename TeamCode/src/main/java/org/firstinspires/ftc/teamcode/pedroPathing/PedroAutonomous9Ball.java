@@ -74,56 +74,42 @@ public class PedroAutonomous9Ball extends OpMode {
         public PathChain Score1;
         public PathChain Grab2;
         public PathChain Score2;
-
+        private final Pose startPose = new Pose(23, 125, Math.toRadians(145)); // Start Pose of our robot.
+        private final Pose scorePose = new Pose(34, 117, Math.toRadians(145)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+        private final Pose pickup1Pose = new Pose(38, 86, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+        private final Pose pickup1front = new Pose(62,86,Math.toRadians(0)); // In Front of Highest (First Set) of Artifacts from the Spike Mark.
+        private final Pose pickup2Pose = new Pose(32, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+        private final Pose pickup2front = new Pose(62, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+//        private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
         public Paths(Follower follower) {
-            ScorePreload = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(23.000, 125.000),
-
-                                    new Pose(34.000, 117.000)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(145))
-
+            ScorePreload = follower.pathBuilder()
+                    .addPath(new BezierLine(startPose, scorePose))
+                    .setConstantHeadingInterpolation(Math.toRadians(145))
                     .build();
 
-            Grab1 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(34.000, 117.000),
-                                    new Pose(92, 83.000),
-                                    new Pose(32, 86)
-                            )
-                    ).setTangentHeadingInterpolation()
-                    .setReversed()
+            Grab1 = follower.pathBuilder()
+                    .addPath(new BezierLine(scorePose, pickup1front))
+                    .setLinearHeadingInterpolation(145,0)
+                    .addPath(new BezierLine(pickup1front,pickup1Pose))
+                    .setConstantHeadingInterpolation(0)
                     .build();
 
-            Score1 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(32, 86),
-
-                                    new Pose(34.000, 117.000)
-                            )
-                    ).setLinearHeadingInterpolation(0,Math.toRadians(145))
-
+            Score1 = follower.pathBuilder()
+                    .addPath(new BezierLine(pickup1Pose, scorePose))
+                    .setLinearHeadingInterpolation(0,Math.toRadians(145))
                     .build();
 
-            Grab2 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(34.000, 117.000),
-                                    new Pose(95, 53),
-                                    new Pose(26, 64)
-                            )
-                    ).setTangentHeadingInterpolation()
-                    .setReversed()
+            Grab2 = follower.pathBuilder()
+                    .addPath(new BezierLine(scorePose, pickup2front))
+                    .setLinearHeadingInterpolation(145,0)
+                    .addPath(new BezierLine(pickup2front,pickup2Pose))
+                    .setConstantHeadingInterpolation(0)
                     .build();
 
-            Score2 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(25, 58.000),
-                                    new Pose(35.000, 51.000),
-                                    new Pose(34.000, 117.000)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(145))
-
+            Score2 = follower.pathBuilder()
+                    .addPath(new BezierLine(pickup2Pose,pickup2front))
+                    .addPath(new BezierLine(pickup2front,scorePose))
+                    .setLinearHeadingInterpolation(0,Math.toRadians(145))
                     .build();
         }
     }
@@ -144,16 +130,16 @@ public class PedroAutonomous9Ball extends OpMode {
                     if (pathTimer.getElapsedTimeSeconds() > 5) {
                         intakeWheel.IntakeOff();
                         launcherWheel.LauncherOff();
-                        follower.followPath(paths.Grab1,.75,true);
+                        follower.followPath(paths.Grab1,true);
                         intakeWheel.IntakeOn();
                         setPathState(2);
                     }
                 }
                 break;
             case 2:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 1) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 5)) {
                     intakeWheel.IntakeOff();
-                    follower.followPath(paths.Score1,.5,true);
+                    follower.followPath(paths.Score1,true);
                     setPathState(3);
                 }
                 break;
@@ -164,16 +150,16 @@ public class PedroAutonomous9Ball extends OpMode {
                     if (pathTimer.getElapsedTimeSeconds() > 7) {
                         intakeWheel.IntakeOff();
                         launcherWheel.LauncherOff();
-                        follower.followPath(paths.Grab2,.75,true);
+                        follower.followPath(paths.Grab2,true);
                         intakeWheel.IntakeOn();
                         setPathState(4);
                     }
                 }
                 break;
             case 4:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 1) {
+                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 5)) {
                     intakeWheel.IntakeOff();
-                    follower.followPath(paths.Score2,.5,true);
+                    follower.followPath(paths.Score2,true);
                     setPathState(5);
                 }
                 break;
@@ -181,10 +167,7 @@ public class PedroAutonomous9Ball extends OpMode {
                 if (!follower.isBusy()) {
                     intakeWheel.IntakeOn();
                     launcherWheel.LauncherOn();
-                        if (opmodeTimer.getElapsedTimeSeconds() > 30) {
-                            intakeWheel.IntakeOff();
-                            launcherWheel.LauncherOff();
-                        }
+
                 }
                 break;
         }
