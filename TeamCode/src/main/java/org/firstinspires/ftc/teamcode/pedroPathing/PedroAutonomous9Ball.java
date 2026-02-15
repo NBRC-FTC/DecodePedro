@@ -89,8 +89,8 @@ public class PedroAutonomous9Ball extends OpMode {
             Grab1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(34.000, 117.000),
-                                    new Pose(94.000, 83.000),
-                                    new Pose(22, 84.000)
+                                    new Pose(92, 83.000),
+                                    new Pose(32, 86)
                             )
                     ).setTangentHeadingInterpolation()
                     .setReversed()
@@ -98,19 +98,19 @@ public class PedroAutonomous9Ball extends OpMode {
 
             Score1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(18.000, 84.000),
+                                    new Pose(32, 86),
 
                                     new Pose(34.000, 117.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(-1), Math.toRadians(145))
+                    ).setLinearHeadingInterpolation(0,Math.toRadians(145))
 
                     .build();
 
             Grab2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(34.000, 117.000),
-                                    new Pose(108.000, 57.000),
-                                    new Pose(11.000, 58.000)
+                                    new Pose(95, 53),
+                                    new Pose(26, 64)
                             )
                     ).setTangentHeadingInterpolation()
                     .setReversed()
@@ -118,7 +118,7 @@ public class PedroAutonomous9Ball extends OpMode {
 
             Score2 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(11.000, 58.000),
+                                    new Pose(25, 58.000),
                                     new Pose(35.000, 51.000),
                                     new Pose(34.000, 117.000)
                             )
@@ -133,36 +133,58 @@ public class PedroAutonomous9Ball extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
+                shooter.shootNear();
                 follower.followPath(paths.ScorePreload,.5,true);
                 setPathState(1);
                 break;
             case 1:
-                //Shoot
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && shooter.isShooterAtTargetVelocity()) {
+                    intakeWheel.IntakeOn();
+                    launcherWheel.LauncherOn();
                     if (pathTimer.getElapsedTimeSeconds() > 5) {
-                        follower.followPath(paths.Grab1,.5,true);
+                        intakeWheel.IntakeOff();
+                        launcherWheel.LauncherOff();
+                        follower.followPath(paths.Grab1,.75,true);
+                        intakeWheel.IntakeOn();
                         setPathState(2);
                     }
                 }
                 break;
             case 2:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 1) {
+                    intakeWheel.IntakeOff();
                     follower.followPath(paths.Score1,.5,true);
                     setPathState(3);
                 }
                 break;
             case 3:
-                //Shoot
                 if (!follower.isBusy()) {
-                    if (pathTimer.getElapsedTimeSeconds() > 5) {
-                        follower.followPath(paths.Grab2,.5,true);
+                    intakeWheel.IntakeOn();
+                    launcherWheel.LauncherOn();
+                    if (pathTimer.getElapsedTimeSeconds() > 7) {
+                        intakeWheel.IntakeOff();
+                        launcherWheel.LauncherOff();
+                        follower.followPath(paths.Grab2,.75,true);
+                        intakeWheel.IntakeOn();
                         setPathState(4);
                     }
                 }
                 break;
             case 4:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 1) {
+                    intakeWheel.IntakeOff();
                     follower.followPath(paths.Score2,.5,true);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                if (!follower.isBusy()) {
+                    intakeWheel.IntakeOn();
+                    launcherWheel.LauncherOn();
+                        if (opmodeTimer.getElapsedTimeSeconds() > 30) {
+                            intakeWheel.IntakeOff();
+                            launcherWheel.LauncherOff();
+                        }
                 }
                 break;
         }
