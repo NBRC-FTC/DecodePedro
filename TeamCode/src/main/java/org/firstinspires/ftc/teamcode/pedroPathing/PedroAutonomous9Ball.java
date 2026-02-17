@@ -74,17 +74,20 @@ public class PedroAutonomous9Ball extends OpMode {
         public PathChain Score1;
         public PathChain Grab2;
         public PathChain Score2;
-        private final Pose startPose = new Pose(23, 125, Math.toRadians(145)); // Start Pose of our robot.
-        private final Pose scorePose = new Pose(34, 117, Math.toRadians(145)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-        private final Pose pickup1Pose = new Pose(38, 86, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-        private final Pose pickup1front = new Pose(62,86,Math.toRadians(0)); // In Front of Highest (First Set) of Artifacts from the Spike Mark.
-        private final Pose pickup2Pose = new Pose(32, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-        private final Pose pickup2front = new Pose(62, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-//        private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+        public PathChain Park;
+        public final Pose startPose = new Pose(23, 125, Math.toRadians(145)); // Start Pose of our robot.
+        public final Pose scorePose = new Pose(34, 117, Math.toRadians(145)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+        public final Pose pickup1Pose = new Pose(38, 86, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+        public final Pose pickup1front = new Pose(62,86,Math.toRadians(0)); // In Front of Highest (First Set) of Artifacts from the Spike Mark.
+        public final Pose pickup2Pose = new Pose(33, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+        public final Pose pickup2front = new Pose(62, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+        public final Pose parkPose = new Pose(40, 125, Math.toRadians(145));
+//        public final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
         public Paths(Follower follower) {
             ScorePreload = follower.pathBuilder()
                     .addPath(new BezierLine(startPose, scorePose))
                     .setConstantHeadingInterpolation(Math.toRadians(145))
+                    .setVelocityConstraint(0.1)
                     .build();
 
             Grab1 = follower.pathBuilder()
@@ -97,6 +100,7 @@ public class PedroAutonomous9Ball extends OpMode {
             Score1 = follower.pathBuilder()
                     .addPath(new BezierLine(pickup1Pose, scorePose))
                     .setLinearHeadingInterpolation(0,Math.toRadians(145))
+                    .setVelocityConstraint(0.1)
                     .build();
 
             Grab2 = follower.pathBuilder()
@@ -107,9 +111,13 @@ public class PedroAutonomous9Ball extends OpMode {
                     .build();
 
             Score2 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup2Pose,pickup2front))
-                    .addPath(new BezierLine(pickup2front,scorePose))
+                    .addPath(new BezierCurve(pickup2Pose,new Pose(60,65), scorePose))
                     .setLinearHeadingInterpolation(0,Math.toRadians(145))
+                    .setVelocityConstraint(0.1)
+                    .build();
+            Park = follower.pathBuilder()
+                    .addPath(new BezierLine(scorePose,parkPose))
+                    .setConstantHeadingInterpolation(Math.toRadians(145))
                     .build();
         }
     }
@@ -127,49 +135,63 @@ public class PedroAutonomous9Ball extends OpMode {
                 if (!follower.isBusy() && shooter.isShooterAtTargetVelocity()) {
                     intakeWheel.IntakeOn();
                     launcherWheel.LauncherOn();
-                    if (pathTimer.getElapsedTimeSeconds() > 5) {
+                    if (pathTimer.getElapsedTimeSeconds() > 4) {
                         intakeWheel.IntakeOff();
                         launcherWheel.LauncherOff();
                         follower.followPath(paths.Grab1,true);
                         intakeWheel.IntakeOn();
+                        launcherWheel.LauncherSpit();
                         setPathState(2);
                     }
                 }
                 break;
             case 2:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 5)) {
-                    intakeWheel.IntakeOff();
-                    follower.followPath(paths.Score1,true);
-                    setPathState(3);
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Score1, true);
+                    if(pathTimer.getElapsedTimeSeconds()>6) {
+                        intakeWheel.IntakeOff();
+                        launcherWheel.LauncherOff();
+                        setPathState(3);
+                    }
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
                     intakeWheel.IntakeOn();
                     launcherWheel.LauncherOn();
-                    if (pathTimer.getElapsedTimeSeconds() > 7) {
+                    if (pathTimer.getElapsedTimeSeconds() > 5) {
                         intakeWheel.IntakeOff();
                         launcherWheel.LauncherOff();
                         follower.followPath(paths.Grab2,true);
                         intakeWheel.IntakeOn();
+                        launcherWheel.LauncherSpit();
                         setPathState(4);
                     }
                 }
                 break;
             case 4:
-                if (!follower.isBusy() && (pathTimer.getElapsedTimeSeconds() > 5)) {
-                    intakeWheel.IntakeOff();
-                    follower.followPath(paths.Score2,true);
-                    setPathState(5);
+                if (!follower.isBusy()) {
+                    if (pathTimer.getElapsedTimeSeconds() > 4.5) {
+                        intakeWheel.IntakeOff();
+                        launcherWheel.LauncherOff();
+                        follower.followPath(paths.Score2, true);
+                        setPathState(5);
+                    }
                 }
                 break;
             case 5:
                 if (!follower.isBusy()) {
-                    intakeWheel.IntakeOn();
-                    launcherWheel.LauncherOn();
-
+                    if (pathTimer.getElapsedTimeSeconds()>1.5) {
+                        intakeWheel.IntakeOn();
+                        launcherWheel.LauncherOn();
+                        setPathState(6);
+                    }
                 }
                 break;
+            case 6:
+                if (pathTimer.getElapsedTimeSeconds()>4){
+                    follower.followPath(paths.Park,true);
+                }
         }
     }
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/

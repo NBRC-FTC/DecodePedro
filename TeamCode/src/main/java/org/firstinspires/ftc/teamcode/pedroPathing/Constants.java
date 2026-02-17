@@ -35,7 +35,7 @@ public class Constants {
 //            .offset(new SparkFunOTOS.Pose2D(.5,5.125,Math.toRadians(90)))
             .angleUnit(AngleUnit.RADIANS);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 2, 2);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

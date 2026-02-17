@@ -209,7 +209,9 @@ public class FTC_24007_TeleOp_101225 extends LinearOpMode {
             }
             */
 
-            if (gamepad1.y && shooter.isShooterAtTargetVelocity()) {
+            if (gamepad1.y
+//                    && shooter.isShooterAtTargetVelocity()
+            ) {
              launcherwheel.LauncherOn();
              intakeWheel.IntakeOn();
             }else{

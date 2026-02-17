@@ -27,7 +27,7 @@ public class LauncherWheel {
     }
 
     public void LauncherSpit(){
-        launcherMotor.setPower(-0.3);
+        launcherMotor.setPower(-1);
     }
 
     public void setLauncherSpeed (float speed){
