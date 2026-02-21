@@ -20,9 +20,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 //
 
-@Autonomous(name = "Pedro Autonomous 9 Balls", group = "Autonomous")
+@Autonomous(name = "Pedro Autonomous 9 Balls Red", group = "Autonomous")
 @Configurable // Panels
-public class PedroAutonomous9Ball extends OpMode {
+public class PedroAutonomous9BallRed extends OpMode {
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
@@ -39,7 +39,7 @@ public class PedroAutonomous9Ball extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(23, 125, Math.toRadians(145)));
+        follower.setStartingPose(new Pose(121, 125, Math.toRadians(35)));
 
         launcherWheel = new LauncherWheel(hardwareMap, telemetry);
         intakeWheel = new IntakeWheel(hardwareMap);
@@ -75,49 +75,51 @@ public class PedroAutonomous9Ball extends OpMode {
         public PathChain Grab2;
         public PathChain Score2;
         public PathChain Park;
-        public final Pose startPose = new Pose(23, 125, Math.toRadians(145)); // Start Pose of our robot.
-        public final Pose scorePose = new Pose(34, 117, Math.toRadians(145)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-        public final Pose pickup1Pose = new Pose(38, 86, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-        public final Pose pickup1front = new Pose(62,86,Math.toRadians(0)); // In Front of Highest (First Set) of Artifacts from the Spike Mark.
-        public final Pose pickup2Pose = new Pose(33, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-        public final Pose pickup2front = new Pose(62, 65, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-        public final Pose parkPose = new Pose(40, 125, Math.toRadians(145));
+        public final Pose startPose = new Pose(121, 125, Math.toRadians(35)); // Start Pose of our robot.
+        public final Pose scorePose = new Pose(110, 117, Math.toRadians(35)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+        public final Pose pickup1Pose = new Pose(116, 90, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+        public final Pose pickup1front = new Pose(87,86,Math.toRadians(180)); // In Front of Highest (First Set) of Artifacts from the Spike Mark.
+        public final Pose pickup2Pose = new Pose(120, 65, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+        public final Pose pickup2front = new Pose(87, 65, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+        public final Pose parkPose = new Pose(104, 125, Math.toRadians(35));
 //        public final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
         public Paths(Follower follower) {
             ScorePreload = follower.pathBuilder()
                     .addPath(new BezierLine(startPose, scorePose))
-                    .setConstantHeadingInterpolation(Math.toRadians(145))
+                    .setConstantHeadingInterpolation(Math.toRadians(35))
                     .setVelocityConstraint(0.1)
                     .build();
 
             Grab1 = follower.pathBuilder()
                     .addPath(new BezierLine(scorePose, pickup1front))
-                    .setLinearHeadingInterpolation(145,0)
+                    .setLinearHeadingInterpolation(Math.toRadians(35),Math.toRadians(180))
                     .addPath(new BezierLine(pickup1front,pickup1Pose))
-                    .setConstantHeadingInterpolation(0)
+                    .setConstantHeadingInterpolation(Math.toRadians(180))
                     .build();
 
             Score1 = follower.pathBuilder()
                     .addPath(new BezierLine(pickup1Pose, scorePose))
-                    .setLinearHeadingInterpolation(0,Math.toRadians(145))
-                    .setVelocityConstraint(0.1)
+                    .setLinearHeadingInterpolation(Math.toRadians(180),Math.toRadians(35))
+                    .setTranslationalConstraint(0)
+                    .setHeadingConstraint(0)
                     .build();
 
             Grab2 = follower.pathBuilder()
                     .addPath(new BezierLine(scorePose, pickup2front))
-                    .setLinearHeadingInterpolation(145,0)
+                    .setLinearHeadingInterpolation(Math.toRadians(35),Math.toRadians(180))
                     .addPath(new BezierLine(pickup2front,pickup2Pose))
-                    .setConstantHeadingInterpolation(0)
+                    .setConstantHeadingInterpolation(Math.toRadians(180))
                     .build();
 
             Score2 = follower.pathBuilder()
-                    .addPath(new BezierCurve(pickup2Pose,new Pose(60,65), scorePose))
-                    .setLinearHeadingInterpolation(0,Math.toRadians(145))
-                    .setVelocityConstraint(0.1)
+                    .addPath(new BezierCurve(pickup2Pose,new Pose(84,65), scorePose))
+                    .setLinearHeadingInterpolation(Math.toRadians(180),Math.toRadians(35))
+                    .setTranslationalConstraint(0)
+                    .setHeadingConstraint(0)
                     .build();
             Park = follower.pathBuilder()
                     .addPath(new BezierLine(scorePose,parkPose))
-                    .setConstantHeadingInterpolation(Math.toRadians(145))
+                    .setConstantHeadingInterpolation(Math.toRadians(35))
                     .build();
         }
     }
